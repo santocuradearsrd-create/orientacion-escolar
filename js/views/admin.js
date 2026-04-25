@@ -13,7 +13,7 @@ export async function vistaAdmin() {
   app.innerHTML = `<div class="loading-spinner">Cargando…</div>`;
 
   try {
-    const { data, error } = await api.getUsuarios(S.user.pin_hash);
+    const { data, error } = await api.getUsuarios(S.user.id, S.user.pin_hash);
     if (error) throw new Error(error.message);
     S.usuarios = Array.isArray(data) ? data : [];
   }
@@ -144,7 +144,7 @@ function _renderTabEstudiantes() {
     const filas = window._estudiantesParaImportar;
     if (!filas?.length) return;
     try {
-      await api.upsertEstudiantes(S.user.pin_hash, filas);
+      await api.upsertEstudiantes(S.user.id, S.user.pin_hash, filas);
       toast(`${filas.length} estudiantes importados correctamente.`);
       document.getElementById('csv-preview').innerHTML =
         `<p style="color:#065F46">✅ Importación completada.</p>`;
@@ -187,17 +187,17 @@ function _renderTabAnio() {
 
   window._promover = async () => {
     if (!confirm('¿Promover todos los estudiantes de grado? Esta acción no se puede deshacer.')) return;
-    try { await api.gestionEstudiantes(S.user.pin_hash, 'promover', null, null, null); toast('Promoción completada.'); }
+    try { await api.gestionEstudiantes(S.user.id, S.user.pin_hash, 'promover', null, null, null); toast('Promoción completada.'); }
     catch(e) { toast('Error: ' + e.message); }
   };
   window._desactivarGraduados = async () => {
     if (!confirm('¿Desactivar estudiantes de 6to grado?')) return;
-    try { await api.gestionEstudiantes(S.user.pin_hash, 'desactivar_graduados', null, null, null); toast('Hecho.'); }
+    try { await api.gestionEstudiantes(S.user.id, S.user.pin_hash, 'desactivar_graduados', null, null, null); toast('Hecho.'); }
     catch(e) { toast('Error: ' + e.message); }
   };
   window._limpiar = async () => {
     if (!confirm('¿Eliminar TODOS los estudiantes inactivos? Esta acción es irreversible.')) return;
-    try { await api.gestionEstudiantes(S.user.pin_hash, 'limpiar', null, null, null); toast('Limpieza completada.'); }
+    try { await api.gestionEstudiantes(S.user.id, S.user.pin_hash, 'limpiar', null, null, null); toast('Limpieza completada.'); }
     catch(e) { toast('Error: ' + e.message); }
   };
 }
@@ -327,7 +327,7 @@ window._guardarUsuario = async () => {
   if (pin) datos.pin_hash = await sha256(pin);
 
   try {
-    const { data, error } = await api.upsertUsuario(S.user.pin_hash, id, datos);
+    const { data, error } = await api.upsertUsuario(S.user.id, S.user.pin_hash, id, datos);
     if (error) {
       if (error.code === '23505' || error.message?.includes('unique') || error.message?.includes('duplicate')) {
         throw new Error('El nombre de usuario ya existe. Elige otro.');
@@ -335,7 +335,7 @@ window._guardarUsuario = async () => {
       throw new Error(error.message);
     }
     if (data?.error) throw new Error(data.error);
-    const { data: uData } = await api.getUsuarios(S.user.pin_hash);
+    const { data: uData } = await api.getUsuarios(S.user.id, S.user.pin_hash);
     S.usuarios = Array.isArray(uData) ? uData : [];
     window._hideModalUsuario();
     _renderTabUsuarios();
@@ -362,8 +362,8 @@ window._guardarCobertura = async () => {
   const uid   = document.getElementById('mc-uid').value;
   const areas = [...document.querySelectorAll('.mc-area:checked')].map(cb => cb.value);
   try {
-    await api.setCobertura(S.user.pin_hash, uid, areas);
-    const { data: uData } = await api.getUsuarios(S.user.pin_hash);
+    await api.setCobertura(S.user.id, S.user.pin_hash, uid, areas);
+    const { data: uData } = await api.getUsuarios(S.user.id, S.user.pin_hash);
     S.usuarios = Array.isArray(uData) ? uData : [];
     window._hideModalCobertura();
     _renderTabUsuarios();
