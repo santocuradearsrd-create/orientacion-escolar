@@ -9,7 +9,7 @@ export async function renderCaso() {
   const seg = S.casoActual?.seguimiento || [];
   if (!c) { renderPanel(); return; }
   if (!S.usuarios.length && ['psicologia','admin','coordinador'].includes(S.user.rol)) {
-    const { data } = await api.getUsuarios(S.user.pin_hash);
+    const { data } = await api.getUsuarios(S.user.id, S.user.pin_hash);
     if (data && !data.error) S.usuarios = data;
   }
   const psics = (S.usuarios||[]).filter(u=>u.rol==='psicologia'&&u.activo);
