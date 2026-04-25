@@ -118,32 +118,113 @@ function cursoCard(g) {
 }
 
 function renderCursoDetalle(gradoKey) {
-  const [grad,sec]=gradoKey.split('-');
-  const base=S.panelTab==='historial'?S.casos.filter(x=>x.estado==='cerrado'):S.casos.filter(x=>x.estado!=='cerrado');
-  const casos=base.filter(x=>`${x.docente_grado}-${x.docente_seccion}`===gradoKey);
+  const [grad,sec] = gradoKey.split('-');
+  const base  = S.panelTab==='historial'
+    ? S.casos.filter(x => x.estado==='cerrado')
+    : S.casos.filter(x => x.estado!=='cerrado');
+  const todos = S.casos.filter(x => `${x.docente_grado}-${x.docente_seccion}`===gradoKey);
+  const casos = base.filter(x  => `${x.docente_grado}-${x.docente_seccion}`===gradoKey);
+
   document.getElementById('main').innerHTML=`
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
     <button class="btn btn-outline btn-sm" id="btn-back">&#8592; Volver</button>
     <div>
       <div style="font-size:18px;font-weight:700">${esc(grad)} — Sección ${esc(sec)}</div>
-      <div style="font-size:12px;color:var(--sub)">${casos.length} caso(s)</div>
+      <div style="font-size:12px;color:var(--sub)">${_countLabel(casos)}</div>
     </div>
   </div>
-  <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" id="search-curso" placeholder="Buscar por nombre..."></div>
-  <div id="lista-casos">${casos.length===0?'<div class="card" style="text-align:center;color:var(--sub);padding:40px">Sin casos.</div>':casos.map(casoBadge).join('')}</div>`;
+  <div class="search-wrap"><span class="search-ico">🔍</span>
+    <input type="text" id="search-curso" placeholder="Buscar estudiante...">
+  </div>
+  <div id="lista-casos">
+    ${casos.length===0
+      ? '<div class="card" style="text-align:center;color:var(--sub);padding:40px">Sin casos.</div>'
+      : _renderGruposEstudiante(casos)}
+  </div>`;
+
   document.getElementById('btn-back').addEventListener('click',()=>{S.filtroGrado=null;renderPanelPrincipal();});
-  document.getElementById('search-curso').addEventListener('input',function(){
-    const q=this.value.toLowerCase();
-    const lista=base.filter(x=>{const en=`${x.docente_grado}-${x.docente_seccion}`===gradoKey;const nom=(x.estudiante_nombre_bd||x.estudiante_nombre_manual||'').toLowerCase();return en&&(!q||nom.includes(q));});
-    document.getElementById('lista-casos').innerHTML=lista.length===0?`<div class="card" style="text-align:center;color:var(--sub);padding:30px">Sin resultados.</div>`:lista.map(casoBadge).join('');
+  document.getElementById('search-curso').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    const filtrados = q
+      ? casos.filter(x => (x.estudiante_nombre_bd||x.estudiante_nombre_manual||'').toLowerCase().includes(q))
+      : casos;
+    document.getElementById('lista-casos').innerHTML = filtrados.length===0
+      ? '<div class="card" style="text-align:center;color:var(--sub);padding:30px">Sin resultados.</div>'
+      : _renderGruposEstudiante(filtrados);
     attachCasosEvents();
   });
   attachCasosEvents();
 }
 
+// Agrupa casos por estudiante, ordena por activos desc luego urgencia
+function _renderGruposEstudiante(casos) {
+  const grupos = {};
+  const GRAV = { urgente:0, grave:1, moderado:2, leve:3 };
+
+  casos.forEach(x => {
+    const nom = x.estudiante_nombre_bd || x.estudiante_nombre_manual || '—';
+    if (!grupos[nom]) grupos[nom] = [];
+    grupos[nom].push(x);
+  });
+
+  // Ordenar casos dentro de cada grupo: urgentes primero → más reciente
+  Object.values(grupos).forEach(arr => {
+    arr.sort((a,b) => {
+      const ga = GRAV[a.gravedad]??4, gb = GRAV[b.gravedad]??4;
+      if (ga!==gb) return ga-gb;
+      return new Date(b.created_at)-new Date(a.created_at);
+    });
+  });
+
+  // Ordenar estudiantes: más casos activos desc → peor gravedad → más reciente
+  const sorted = Object.entries(grupos).sort(([,a],[,b]) => {
+    const actA = a.filter(x=>x.estado!=='cerrado').length;
+    const actB = b.filter(x=>x.estado!=='cerrado').length;
+    if (actB!==actA) return actB-actA;
+    const gravA = Math.min(...a.map(x=>GRAV[x.gravedad]??4));
+    const gravB = Math.min(...b.map(x=>GRAV[x.gravedad]??4));
+    if (gravA!==gravB) return gravA-gravB;
+    return new Date(b[0].created_at)-new Date(a[0].created_at);
+  });
+
+  return sorted.map(([nom, arr]) => {
+    const activos   = arr.filter(x=>x.estado!=='cerrado').length;
+    const urgentes  = arr.filter(x=>x.gravedad==='urgente').length;
+    const graves    = arr.filter(x=>x.gravedad==='grave').length;
+    const vencidos  = arr.filter(estaVencida).length;
+
+    const alertas = [
+      urgentes ? `<span class="badge b-urgente">${urgentes} urgente${urgentes>1?'s':''}</span>` : '',
+      graves   ? `<span class="badge b-grave">${graves} grave${graves>1?'s':''}</span>` : '',
+      vencidos ? `<span class="badge" style="background:#FEF3C7;color:#92400E">⏰ cita vencida</span>` : '',
+    ].filter(Boolean).join('');
+
+    return `
+    <div class="est-grupo">
+      <div class="est-grupo-header">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="est-nom">👤 ${esc(nom)}</span>
+          <span class="badge" style="background:#1E3A5F;color:#fff">${arr.length} caso${arr.length>1?'s':''}</span>
+          ${activos ? `<span class="badge b-proceso">${activos} activo${activos>1?'s':''}</span>` : ''}
+          ${alertas}
+        </div>
+      </div>
+      <div class="est-casos">
+        ${arr.map(casoBadge).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _countLabel(casos) {
+  const ests = new Set(casos.map(x=>x.estudiante_nombre_bd||x.estudiante_nombre_manual||'—')).size;
+  return `${casos.length} caso${casos.length!==1?'s':''} · ${ests} estudiante${ests!==1?'s':''}`;
+}
+
 function attachCasosEvents() {
   document.querySelectorAll('.caso-row[data-id]').forEach(el=>el.addEventListener('click',()=>verCaso(el.dataset.id)));
 }
+
 
 export function casoBadge(x) {
   const venc=estaVencida(x);
