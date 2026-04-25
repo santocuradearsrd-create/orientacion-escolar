@@ -36,8 +36,11 @@ export const api = {
     rpc('orient_enviar_caso', { p_datos: datos }),
 
   // ── Casos ─────────────────────────────────────────────────
-  getCasos: (pin_hash, estado = null) =>
-    rpc('orient_get_casos', { p_pin_hash: pin_hash, p_estado: estado }),
+  getCasos: (pin_hash, estado = null) => {
+    const params = { p_pin_hash: pin_hash };
+    if (estado) params.p_estado = estado;
+    return rpc('orient_get_casos', params);
+  },
 
   getCasoDetalle: (pin_hash, caso_id) =>
     rpc('orient_get_caso_detalle', { p_pin_hash: pin_hash, p_caso_id: caso_id }),
@@ -66,8 +69,11 @@ export const api = {
   getUsuarios: pin_hash =>
     rpc('orient_get_usuarios', { p_pin_hash: pin_hash }),
 
-  upsertUsuario: (pin_hash, id, datos) =>
-    rpc('orient_upsert_usuario', { p_pin_hash: pin_hash, p_id: id || null, p_datos: datos }),
+  upsertUsuario: (pin_hash, id, datos) => {
+    const params = { p_pin_hash: pin_hash, p_datos: datos };
+    if (id) params.p_id = id;
+    return rpc('orient_upsert_usuario', params);
+  },
 
   // Cobertura combinada: activa/desactiva áreas extra para un psicólogo
   setCobertura: (pin_hash, usuario_id, areas) =>
