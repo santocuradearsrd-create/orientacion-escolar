@@ -42,14 +42,14 @@ export const api = {
     rpc('orient_enviar_caso', { p_datos: datos }),
 
   // ── Casos ─────────────────────────────────────────────────
-  getCasos: (pin_hash, estado = null) => {
-    const params = { p_pin_hash: pin_hash };
+  getCasos: (usuario_id, pin_hash, estado = null) => {
+    const params = { p_usuario_id: usuario_id, p_pin_hash: pin_hash };
     if (estado) params.p_estado = estado;
     return rpc('orient_get_casos', params);
   },
 
-  getCasoDetalle: (pin_hash, caso_id) =>
-    rpc('orient_get_caso_detalle', { p_pin_hash: pin_hash, p_caso_id: caso_id }),
+  getCasoDetalle: (usuario_id, pin_hash, caso_id) =>
+    rpc('orient_get_caso_detalle', { p_usuario_id: usuario_id, p_pin_hash: pin_hash, p_caso_id: caso_id }),
 
   // ── Gestión ───────────────────────────────────────────────
   agregarObservacion: (usuario_id, pin_hash, caso_id, tipo, contenido) =>
@@ -58,41 +58,41 @@ export const api = {
       p_caso_id:    caso_id,    p_tipo:     tipo, p_contenido: contenido,
     }),
 
-  asignarCaso: (pin_hash, caso_id, asignado_a, nota = null) =>
+  asignarCaso: (usuario_id, pin_hash, caso_id, asignado_a, nota = null) =>
     rpc('orient_asignar_caso', {
-      p_pin_hash: pin_hash, p_caso_id: caso_id,
-      p_asignado_a: asignado_a, p_nota: nota,
+      p_usuario_id: usuario_id, p_pin_hash: pin_hash,
+      p_caso_id: caso_id, p_asignado_a: asignado_a, p_nota: nota,
     }),
 
-  cerrarCaso: (pin_hash, caso_id, resolucion, acuerdos = null, proxima_cita = null) => {
-    const params = { p_pin_hash: pin_hash, p_caso_id: caso_id, p_resolucion: resolucion };
+  cerrarCaso: (usuario_id, pin_hash, caso_id, resolucion, acuerdos = null, proxima_cita = null) => {
+    const params = { p_usuario_id: usuario_id, p_pin_hash: pin_hash, p_caso_id: caso_id, p_resolucion: resolucion };
     if (acuerdos)     params.p_acuerdos     = acuerdos;
     if (proxima_cita) params.p_proxima_cita = proxima_cita;
     return rpc('orient_cerrar_caso', params);
   },
 
   // ── Admin ─────────────────────────────────────────────────
-  getUsuarios: pin_hash =>
-    rpc('orient_get_usuarios', { p_pin_hash: pin_hash }),
+  getUsuarios: (usuario_id, pin_hash) =>
+    rpc('orient_get_usuarios', { p_usuario_id: usuario_id, p_pin_hash: pin_hash }),
 
-  upsertUsuario: (pin_hash, id, datos) => {
-    const params = { p_pin_hash: pin_hash, p_datos: datos };
+  upsertUsuario: (usuario_id, pin_hash, id, datos) => {
+    const params = { p_usuario_id: usuario_id, p_pin_hash: pin_hash, p_datos: datos };
     if (id) params.p_id = id;
     return rpc('orient_upsert_usuario', params);
   },
 
-  // Cobertura combinada: activa/desactiva áreas extra para un psicólogo
-  setCobertura: (pin_hash, usuario_id, areas) =>
+  setCobertura: (usuario_id, pin_hash, target_id, areas) =>
     rpc('orient_set_cobertura', {
-      p_pin_hash: pin_hash, p_usuario_id: usuario_id, p_areas: areas,
+      p_usuario_id: usuario_id, p_pin_hash: pin_hash,
+      p_target_id: target_id,   p_areas: areas,
     }),
 
-  upsertEstudiantes: (pin_hash, filas) =>
-    rpc('orient_upsert_estudiantes', { p_pin_hash: pin_hash, p_filas: filas }),
+  upsertEstudiantes: (usuario_id, pin_hash, filas) =>
+    rpc('orient_upsert_estudiantes', { p_usuario_id: usuario_id, p_pin_hash: pin_hash, p_filas: filas }),
 
-  gestionEstudiantes: (pin_hash, accion, grado = null, seccion = null, grado_dest = null) =>
+  gestionEstudiantes: (usuario_id, pin_hash, accion, grado = null, seccion = null, grado_dest = null) =>
     rpc('orient_gestion_estudiantes', {
-      p_pin_hash: pin_hash, p_accion: accion,
+      p_usuario_id: usuario_id, p_pin_hash: pin_hash, p_accion: accion,
       p_grado: grado, p_seccion: seccion, p_grado_dest: grado_dest,
     }),
 };
