@@ -373,17 +373,20 @@ window._guardarCobertura = async () => {
 
 /* ─── HELPERS ───────────────────────────── */
 function _parseCsv(text) {
-  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
-  const filas = [];
-  for (const line of lines) {
-    const cols = line.split(',').map(c => c.replace(/^"|"$/g,'').trim());
+  var LF = String.fromCharCode(10);
+  var CR = String.fromCharCode(13);
+  var clean = text.replace(new RegExp(CR, "g"), "");
+  var lines = clean.trim().split(LF).map(function(l){ return l.trim(); }).filter(Boolean);
+  var filas = [];
+  for (var i = 0; i < lines.length; i++) {
+    var cols = lines[i].split(',').map(function(c){ return c.replace(/^"|"$/g,'').trim(); });
     if (cols.length < 4) continue;
-    const [nombre, grado, seccion, col3, col4] = cols;
+    var nombre = cols[0], grado = cols[1], seccion = cols[2], col3 = cols[3], col4 = cols[4];
     if (!nombre || nombre.toLowerCase() === 'nombre') continue;
-    const esNumero = !isNaN(parseInt(col3)) && col3.trim() !== '';
-    const numero_orden = esNumero ? parseInt(col3) : 0;
-    const nivel = esNumero ? (col4 || 'primaria') : (col3 || 'primaria');
-    filas.push({ nombre, grado, seccion, nivel, numero_orden });
+    var esNumero = col3 && !isNaN(parseInt(col3));
+    var numero_orden = esNumero ? parseInt(col3) : 0;
+    var nivel = esNumero ? (col4 || 'primaria') : (col3 || 'primaria');
+    filas.push({ nombre: nombre, grado: grado, seccion: seccion, nivel: nivel, numero_orden: numero_orden });
   }
   return filas;
 }
