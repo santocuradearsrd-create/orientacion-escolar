@@ -260,3 +260,16 @@ textarea{resize:vertical;min-height:90px}
   .modal-card{padding:20px}
   .accion-card{flex-direction:column;align-items:flex-start}
 }
+
+/* ── Grupo estudiante (vista curso) ────────────────────────── */
+.est-grupo { margin-bottom: 16px; }
+.est-grupo-header {
+  background: linear-gradient(135deg, #1E3A5F, #2D5278);
+  border-radius: 12px 12px 0 0;
+  padding: 10px 14px;
+}
+.est-nom { color: #fff; font-weight: 700; font-size: 15px; }
+.est-casos { border: 1.5px solid #CBD5E1; border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; }
+.est-casos .caso-row { border-radius: 0; border-left: none; border-right: none; border-top: none; margin: 0; }
+.est-casos .caso-row:last-child { border-bottom: none; }
+.b-grave { background: #FEF3C7; color: #92400E; }
