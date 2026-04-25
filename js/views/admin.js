@@ -328,7 +328,13 @@ window._guardarUsuario = async () => {
 
   try {
     const { data, error } = await api.upsertUsuario(S.user.pin_hash, id, datos);
-    if (error || data?.error) throw new Error(data?.error || error?.message);
+    if (error) {
+      if (error.code === '23505' || error.message?.includes('unique') || error.message?.includes('duplicate')) {
+        throw new Error('El nombre de usuario ya existe. Elige otro.');
+      }
+      throw new Error(error.message);
+    }
+    if (data?.error) throw new Error(data.error);
     const { data: uData } = await api.getUsuarios(S.user.pin_hash);
     S.usuarios = Array.isArray(uData) ? uData : [];
     window._hideModalUsuario();
