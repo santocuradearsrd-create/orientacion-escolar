@@ -10,7 +10,7 @@ export async function renderPanel() {
     <div style="font-size:32px;margin-bottom:12px">⏳</div>
     <div>Cargando casos...</div>
   </div>`;
-  const { data, error } = await api.getCasos(S.user.pin_hash, null);
+  const { data, error } = await api.getCasos(S.user.id, S.user.pin_hash, null);
   if (error || !Array.isArray(data)) {
     document.getElementById('main').innerHTML = `
     <div class="card" style="text-align:center;padding:40px;color:var(--sub)">
