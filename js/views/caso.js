@@ -111,10 +111,10 @@ async function guardarGestion() {
   btn.disabled=true;btn.textContent='Guardando...';
   if(gravedad) await api.agregarObservacion(S.user.id,S.user.pin_hash,id,'gravedad',gravedad);
   if(cita)     await api.agregarObservacion(S.user.id,S.user.pin_hash,id,'cita',cita);
-  if(reasignar) await api.asignarCaso(S.user.pin_hash,id,reasignar,nota||null);
+  if(reasignar) await api.asignarCaso(S.user.id, S.user.pin_hash,id,reasignar,nota||null);
   if(nota&&!reasignar) await api.agregarObservacion(S.user.id,S.user.pin_hash,id,'observacion',nota);
   toast('Guardado exitosamente');
-  const {data}=await api.getCasoDetalle(S.user.pin_hash,id);
+  const {data}=await api.getCasoDetalle(S.user.id, S.user.pin_hash,id);
   if(data&&!data.error){S.casoActual=data;renderCaso();}
 }
 
@@ -146,11 +146,11 @@ async function confirmarCierre() {
   const errEl=document.getElementById('c-err');
   if(!res){errEl.style.display='block';errEl.textContent='La resolución es obligatoria.';return;}
   const btn=document.getElementById('btn-confirm-cierre');btn.disabled=true;btn.textContent='Cerrando...';
-  const {error}=await api.cerrarCaso(S.user.pin_hash,S.casoActual.caso.id,res,ac||null,cita||null);
+  const {error}=await api.cerrarCaso(S.user.id, S.user.pin_hash,S.casoActual.caso.id,res,ac||null,cita||null);
   if(error){btn.disabled=false;btn.textContent='✓ Confirmar cierre';toast('Error: '+error.message,5000);return;}
   document.getElementById('cierre-modal').remove();
   toast('Caso cerrado exitosamente');
-  const {data}=await api.getCasoDetalle(S.user.pin_hash,S.casoActual.caso.id);
+  const {data}=await api.getCasoDetalle(S.user.id, S.user.pin_hash,S.casoActual.caso.id);
   if(data&&!data.error){S.casoActual=data;renderCaso();}
 }
 
@@ -161,7 +161,7 @@ export async function vistaCaso(params) {
   if (!casoId) { navigate('panel'); return; }
   if (casoId && (!S.casoActual || S.casoActual.caso.id !== casoId)) {
     document.getElementById('main').innerHTML = '<div class="loading-spinner">Cargando caso…</div>';
-    const { data } = await api.getCasoDetalle(S.user.pin_hash, casoId);
+    const { data } = await api.getCasoDetalle(S.user.id, S.user.pin_hash, casoId);
     if (!data?.caso) { navigate('panel'); return; }
     S.casoActual = data;
   }
