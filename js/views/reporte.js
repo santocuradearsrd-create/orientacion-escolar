@@ -191,11 +191,16 @@ async function cargarPsicologos() {
 }
 
 function actualizarEstudiantes() {
+  const nivel = document.getElementById('r-nivel').value;
   const grado = document.getElementById('r-grado').value;
   const sec   = document.getElementById('r-seccion').value;
   const estSel= document.getElementById('r-estudiante');
   if (!grado || !sec) { estSel.innerHTML = '<option value="">-- Selecciona grado y sección --</option>'; return; }
-  const lista = S.estudiantes.filter(e => e.grado === grado && e.seccion === sec);
+  const lista = S.estudiantes.filter(e =>
+    e.grado === grado &&
+    e.seccion === sec &&
+    (!e.nivel || !nivel || e.nivel === nivel)
+  );
   estSel.innerHTML = '<option value="">-- Selecciona --</option>' +
     lista.map(e => `<option value="${e.id}">${e.numero_orden}. ${esc(e.nombre)}</option>`).join('') +
     '<option value="manual">✏ Escribir nombre manualmente</option>';
@@ -242,10 +247,19 @@ async function enviarReporte() {
   const btn = document.getElementById('btn-enviar');
   btn.disabled = true; btn.textContent = 'Enviando...';
 
+  // Mostrar progreso de reintentos si hay error de red
+  let intento = 0;
+  const intervalo = setInterval(() => {
+    intento++;
+    if (intento === 1) btn.textContent = 'Reintentando...';
+    if (intento === 2) btn.textContent = 'Reintentando (2/3)...';
+  }, 1300);
+
   const payload = { ...d };
   if (payload.estudiante_id === 'manual') payload.estudiante_id = null;
 
   const { data, error } = await api.enviarCaso(payload);
+  clearInterval(intervalo);
   btn.disabled = false; btn.textContent = '✉ Enviar reporte';
 
   if (error || data?.error) {
