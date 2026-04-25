@@ -1,8 +1,14 @@
 import { sb } from './config.js';
 
 // Retry wrapper with exponential backoff on network errors
-const wait   = n => new Promise(r => setTimeout(r, n));
-const isNet  = e => { const m = (e?.message||'').toLowerCase(); return m.includes('failed')||m.includes('network')||m.includes('fetch'); };
+const wait  = n => new Promise(r => setTimeout(r, n));
+const isNet = e => {
+  const m = (e?.message || e?.code || '').toLowerCase();
+  return m.includes('failed') || m.includes('network') ||
+         m.includes('fetch')  || m.includes('changed') ||
+         m.includes('err_')   || m.includes('offline') ||
+         m.includes('abort')  || m.includes('timeout');
+};
 
 export async function rpc(fn, params, tries = 3, ms = 1200) {
   for (let i = 0; i < tries; i++) {
@@ -58,12 +64,12 @@ export const api = {
       p_asignado_a: asignado_a, p_nota: nota,
     }),
 
-  cerrarCaso: (pin_hash, caso_id, resolucion, acuerdos = null, proxima_cita = null) =>
-    rpc('orient_cerrar_caso', {
-      p_pin_hash:    pin_hash, p_caso_id:      caso_id,
-      p_resolucion:  resolucion, p_acuerdos:   acuerdos,
-      p_proxima_cita: proxima_cita,
-    }),
+  cerrarCaso: (pin_hash, caso_id, resolucion, acuerdos = null, proxima_cita = null) => {
+    const params = { p_pin_hash: pin_hash, p_caso_id: caso_id, p_resolucion: resolucion };
+    if (acuerdos)     params.p_acuerdos     = acuerdos;
+    if (proxima_cita) params.p_proxima_cita = proxima_cita;
+    return rpc('orient_cerrar_caso', params);
+  },
 
   // ── Admin ─────────────────────────────────────────────────
   getUsuarios: pin_hash =>
