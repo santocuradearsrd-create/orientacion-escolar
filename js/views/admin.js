@@ -376,16 +376,17 @@ function _parseCsv(text) {
   const lines = text.trim().split('
 ').map(l => l.trim()).filter(Boolean);
   const filas = [];
-  const contadores = {};
   for (const line of lines) {
-    const cols = line.split(',').map(c => c.replace(/^\"|\"$/g,'').trim());
-    if (cols.length < 3) continue;
-    const [nombre, grado, seccion, nivel] = cols;
+    const cols = line.split(',').map(c => c.replace(/^"|"$/g,'').trim());
+    if (cols.length < 4) continue;
+    // Formato: nombre, grado, seccion, numero_orden, nivel
+    const [nombre, grado, seccion, col3, col4] = cols;
     if (!nombre || nombre.toLowerCase() === 'nombre') continue;
-    const niv = nivel || 'primaria';
-    const key = (grado + '-' + seccion + '-' + niv).toLowerCase();
-    contadores[key] = (contadores[key] || 0) + 1;
-    filas.push({ nombre, grado, seccion, nivel: niv, numero_orden: contadores[key] });
+    // Detectar si col3 es numero_orden (número) o nivel (texto)
+    const esNumero = !isNaN(parseInt(col3)) && col3.trim() !== '';
+    const numero_orden = esNumero ? parseInt(col3) : 0;
+    const nivel = esNumero ? (col4 || 'primaria') : (col3 || 'primaria');
+    filas.push({ nombre, grado, seccion, nivel, numero_orden });
   }
   return filas;
 });
