@@ -373,8 +373,7 @@ window._guardarCobertura = async () => {
 
 /* ─── HELPERS ───────────────────────────── */
 function _parseCsv(text) {
-  const lines = text.trim().split('
-').map(l => l.trim()).filter(Boolean);
+  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
   const filas = [];
   for (const line of lines) {
     const cols = line.split(',').map(c => c.replace(/^"|"$/g,'').trim());
