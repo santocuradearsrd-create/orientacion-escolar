@@ -1,4 +1,4 @@
-import { sb } from './config.js'; 
+import { sb } from './config.js';
 
 // Retry wrapper with exponential backoff on network errors
 const wait  = n => new Promise(r => setTimeout(r, n));
@@ -49,7 +49,7 @@ export const api = {
   },
 
   getCasoDetalle: (usuario_id, pin_hash, caso_id) =>
-    rpc('orient_get_caso_detalle', { p_pin_hash: pin_hash, p_caso_id: caso_id, p_usuario_id: usuario_id }),
+    rpc('orient_get_caso_detalle', { p_pin_hash: pin_hash, p_caso_id: caso_id }),
 
   // ── Gestión ───────────────────────────────────────────────
   agregarObservacion: (usuario_id, pin_hash, caso_id, tipo, contenido) =>
