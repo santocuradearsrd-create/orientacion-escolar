@@ -12,7 +12,11 @@ export async function vistaAdmin() {
   const app = document.getElementById('main');
   app.innerHTML = `<div class="loading-spinner">Cargando…</div>`;
 
-  try { S.usuarios = await api.getUsuarios(S.user.pin_hash) || []; }
+  try {
+    const { data, error } = await api.getUsuarios(S.user.pin_hash);
+    if (error) throw new Error(error.message);
+    S.usuarios = Array.isArray(data) ? data : [];
+  }
   catch(e) { toast('Error: ' + e.message); S.usuarios = []; }
 
   _renderAdmin();
@@ -325,7 +329,8 @@ window._guardarUsuario = async () => {
 
   try {
     await api.upsertUsuario(S.user.pin_hash, datos);
-    S.usuarios = await api.getUsuarios(S.user.pin_hash) || [];
+    const { data: uData } = await api.getUsuarios(S.user.pin_hash);
+    S.usuarios = Array.isArray(uData) ? uData : [];
     window._hideModalUsuario();
     _renderTabUsuarios();
     toast('Usuario guardado.');
@@ -352,7 +357,8 @@ window._guardarCobertura = async () => {
   const areas = [...document.querySelectorAll('.mc-area:checked')].map(cb => cb.value);
   try {
     await api.setCobertura(S.user.pin_hash, uid, areas);
-    S.usuarios = await api.getUsuarios(S.user.pin_hash) || [];
+    const { data: uData } = await api.getUsuarios(S.user.pin_hash);
+    S.usuarios = Array.isArray(uData) ? uData : [];
     window._hideModalCobertura();
     _renderTabUsuarios();
     toast('Cobertura actualizada.');
