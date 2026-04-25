@@ -1,5 +1,5 @@
 // ── CAMBIAR ESTE NÚMERO PARA FORZAR ACTUALIZACIÓN EN TODOS LOS USUARIOS ──
-const VERSION = 'v4';
+const VERSION = 'v5';
 
 const CACHE = `orientacion-${VERSION}`;
 
