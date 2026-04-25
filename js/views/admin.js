@@ -373,14 +373,22 @@ window._guardarCobertura = async () => {
 
 /* ─── HELPERS ───────────────────────────── */
 function _parseCsv(text) {
-  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  const lines = text.trim().split('
+').map(l => l.trim()).filter(Boolean);
   const filas = [];
+  const contadores = {};
   for (const line of lines) {
-    const cols = line.split(',').map(c => c.replace(/^"|"$/g,'').trim());
-    if (cols.length < 4) continue;
+    const cols = line.split(',').map(c => c.replace(/^\"|\"$/g,'').trim());
+    if (cols.length < 3) continue;
     const [nombre, grado, seccion, nivel] = cols;
-    if (nombre.toLowerCase() === 'nombre') continue; // skip header
-    filas.push({ nombre, grado, seccion, nivel: nivel || 'primaria' });
+    if (!nombre || nombre.toLowerCase() === 'nombre') continue;
+    const niv = nivel || 'primaria';
+    const key = (grado + '-' + seccion + '-' + niv).toLowerCase();
+    contadores[key] = (contadores[key] || 0) + 1;
+    filas.push({ nombre, grado, seccion, nivel: niv, numero_orden: contadores[key] });
+  }
+  return filas;
+});
   }
   return filas;
 }
