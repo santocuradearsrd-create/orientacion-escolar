@@ -250,7 +250,7 @@ function buscarGlobal(q,base) {
 }
 
 async function verCaso(id) {
-  const {data,error}=await api.getCasoDetalle(S.user.pin_hash,id);
+  const {data,error}=await api.getCasoDetalle(S.user.id,S.user.pin_hash,id);
   if(error||data?.error){toast('Error al cargar el caso');return;}
   S.casoActual=data;
   navigate('caso');
