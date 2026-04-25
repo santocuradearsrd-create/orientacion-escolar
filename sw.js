@@ -1,6 +1,4 @@
-// ── CAMBIAR ESTE NÚMERO PARA FORZAR ACTUALIZACIÓN EN TODOS LOS USUARIOS ──
-const VERSION = 'v7';
-
+const VERSION = 'v8';
 const CACHE = `orientacion-${VERSION}`;
 
 const ARCHIVOS = [
@@ -26,7 +24,6 @@ const ARCHIVOS = [
   './lib/xlsx.full.min.js',
 ];
 
-// ── Instalar: cachear todos los archivos ─────────────────────
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
@@ -35,29 +32,27 @@ self.addEventListener('install', e => {
   );
 });
 
-// ── Activar: eliminar cachés viejas ──────────────────────────
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-      )
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll())
+      .then(clients => clients.forEach(c => c.postMessage({ type: 'SW_UPDATED', version: VERSION })))
   );
 });
 
-// ── Fetch: red primero, caché como respaldo ──────────────────
 self.addEventListener('fetch', e => {
-  // No interceptar llamadas a Supabase
   if (e.request.url.includes('supabase.co')) return;
-
   e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return res;
+    caches.open(CACHE).then(cache =>
+      cache.match(e.request).then(cached => {
+        const network = fetch(e.request).then(res => {
+          cache.put(e.request, res.clone());
+          return res;
+        });
+        return cached || network;
       })
-      .catch(() => caches.match(e.request))
+    )
   );
 });
