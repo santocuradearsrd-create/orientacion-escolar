@@ -318,7 +318,6 @@ window._guardarUsuario = async () => {
 
   const id    = document.getElementById('mu-id').value || null;
   const datos = {
-    id,
     nombre,
     usuario,
     rol:    document.getElementById('mu-rol').value,
@@ -328,7 +327,8 @@ window._guardarUsuario = async () => {
   if (pin) datos.pin_hash = await sha256(pin);
 
   try {
-    await api.upsertUsuario(S.user.pin_hash, datos);
+    const { data, error } = await api.upsertUsuario(S.user.pin_hash, id, datos);
+    if (error || data?.error) throw new Error(data?.error || error?.message);
     const { data: uData } = await api.getUsuarios(S.user.pin_hash);
     S.usuarios = Array.isArray(uData) ? uData : [];
     window._hideModalUsuario();
