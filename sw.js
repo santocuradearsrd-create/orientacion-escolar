@@ -1,4 +1,4 @@
-const VERSION = 'v9';
+const VERSION = 'v10';
 const CACHE = `orientacion-${VERSION}`;
 
 // Solo cachear assets estáticos que no cambian frecuentemente
@@ -27,6 +27,9 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = e.request.url;
+
+  // Solo manejar requests http/https
+  if (!url.startsWith('http')) return;
 
   // Nunca interceptar llamadas a Supabase
   if (url.includes('supabase.co')) return;
